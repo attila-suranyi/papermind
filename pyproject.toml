@@ -1,0 +1,22 @@
+[project]
+name = "papermind"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "ruff>=0.15.2",
+]
+
+[tool.ruff]
+# Enable specific rules (Pyflakes, Pycodestyle, Isort)
+select = ["E", "F", "I"]
+line-length = 100
+
+[tool.ruff.lint]
+# Automatically fix what you can
+fixable = ["ALL"]

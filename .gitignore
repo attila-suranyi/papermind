@@ -8,3 +8,5 @@ dist/
 build/
 .DS_Store
 docs/
+.python-version
+uv.lock
