@@ -1,4 +1,5 @@
 import sys
+
 from app.ingestion.ingest import ingest_pdf
 
 
@@ -16,10 +17,9 @@ def main():
         print(f"Failed to ingest PDF: {e}")
         return
 
-    try:
-        print(doc.export_to_markdown())
-    except Exception:
-        print("Document ingested but export to markdown failed.")
+    if not doc:
+        print("No chunks were created from the PDF.")
+        return
 
 
 if __name__ == "__main__":
