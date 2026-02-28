@@ -1,24 +1,19 @@
-import sys
+from pathlib import Path
 
-from app.ingestion.ingest import ingest_pdf
+from app.ingestion.ingest import ingest_pdfs
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python main.py <path-to-pdf>")
-        return
-    pdf_path = sys.argv[1]
+    docs_dir = Path(__file__).parent / "docs"
     try:
-        doc = ingest_pdf(pdf_path)
-    except FileNotFoundError as e:
-        print(e)
+        results = ingest_pdfs(docs_dir)
+        if results:
+            print(f"\nSuccessfully ingested {len(results)} PDF(s)")
+            for pdf_name in results:
+                print(f" - {pdf_name}: {len(results[pdf_name])} chunks")
         return
     except Exception as e:
-        print(f"Failed to ingest PDF: {e}")
-        return
-
-    if not doc:
-        print("No chunks were created from the PDF.")
+        print(f"Failed to ingest PDFs: {e}")
         return
 
 

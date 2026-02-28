@@ -1,9 +1,9 @@
 # PaperMind
 
 TODO:
-- [ ] 1. PDF Ingestion
-- [ ] 2. Chunking
-- [ ] 3. Embedding
-- [ ] 4. Vector storage and retrieval
-- [ ] 5. Prompt construction
-- [ ] 6. API endpoint
+- [x] PDF Ingestion
+- [x] Chunking
+- [ ] Embedding
+- [ ] Vector storage and retrieval
+- [ ] Prompt construction
+- [ ] API endpoint
