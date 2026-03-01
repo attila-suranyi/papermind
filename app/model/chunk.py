@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import Optional
-from functorch.dim import Tensor
+from typing import Optional, List
 
 
 @dataclass
 class Chunk:
     text: str
     metadata: dict
-    embedding: Optional[Tensor] = None
+    embedding: Optional[List[List[float]]] = None

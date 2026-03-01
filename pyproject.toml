@@ -3,8 +3,9 @@ name = "papermind"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
+    "chromadb>=1.5.2",
     "docling>=2.75.0",
     "ruff>=0.15.4",
     "sentence-transformers>=5.2.3",
