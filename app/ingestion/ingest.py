@@ -4,8 +4,10 @@ from typing import Dict, List
 from docling.chunking import HybridChunker
 from docling.document_converter import DocumentConverter
 
+from app.model.chunk import Chunk
 
-def ingest_pdfs(dir_path: Path) -> Dict[str, List[Dict]]:
+
+def ingest_pdfs(dir_path: Path) -> Dict[str, List[Chunk]]:
     if not dir_path.exists():
         raise FileNotFoundError(f"Directory not found: {str(dir_path)}")
     
@@ -31,7 +33,7 @@ def ingest_pdfs(dir_path: Path) -> Dict[str, List[Dict]]:
     return results
 
 
-def get_chunks(pdf_path: Path) -> List[Dict]:
+def get_chunks(pdf_path: Path) -> List[Chunk]:
     if not pdf_path.exists():
         raise FileNotFoundError(f"PDF file not found: {str(pdf_path)}")
 
@@ -44,14 +46,9 @@ def get_chunks(pdf_path: Path) -> List[Dict]:
     chunks = []
 
     for i, chunk in enumerate(chunk_iter):
-        print(f"=== {i} ===")
-
         enriched_text = chunker.contextualize(chunk=chunk)
-        chunks.append({"enriched_text": enriched_text, "metadata": chunk.meta.export_json_dict()})
+        chunks.append(Chunk(text=enriched_text, metadata=chunk.meta.export_json_dict()))
 
-        print(
-            f"Enriched text:\n{enriched_text}\n, \
-              metadata:\n{chunk.meta.export_json_dict()}\n"
-        )
+    print(f"Successfully ingested {len(chunks)} chunks")
 
     return chunks
