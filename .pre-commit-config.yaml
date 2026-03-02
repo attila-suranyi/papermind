@@ -15,3 +15,14 @@ repos:
         args: [ --fix ]
       # This handles all your code formatting
       - id: ruff-format
+
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [ "--profile", "black" ]
