@@ -1,9 +1,9 @@
-from dataclasses import dataclass
 from typing import Optional, List
 
 
-@dataclass
 class Chunk:
-    text: str
-    metadata: dict
-    embedding: Optional[List[List[float]]] = None
+
+    def __init__(self, text: str, metadata: dict, embedding: Optional[List[float]] = None):
+        self.text = text
+        self.metadata = metadata
+        self.embedding = embedding

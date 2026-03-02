@@ -8,36 +8,19 @@ from docling.document_converter import DocumentConverter
 from app.model.chunk import Chunk
 
 
-def flatten_metadata(metadata: dict) -> dict:
-    """
-    Convert nested metadata to Chroma-compatible flat format.
-    Complex objects (lists, dicts) are serialized as JSON strings.
-    """
-    flattened = {}
-    
-    for key, value in metadata.items():
-        if isinstance(value, (str, int, float, bool, type(None))):
-            flattened[key] = value
-        else:
-            # Complex types (list, dict, etc.) are serialized as JSON strings
-            flattened[key] = json.dumps(value)
-    
-    return flattened
-
-
 def ingest_pdfs(dir_path: Path) -> Dict[str, List[Chunk]]:
     if not dir_path.exists():
         raise FileNotFoundError(f"Directory not found: {str(dir_path)}")
-    
+
     if not dir_path.is_dir():
         raise NotADirectoryError(f"Path is not a directory: {str(dir_path)}")
-    
+
     pdf_files = list(dir_path.glob("*.pdf"))
-    
+
     if not pdf_files:
         print(f"No PDF files found in {str(dir_path)}")
         return {}
-    
+
     results = {}
     for pdf_file in sorted(pdf_files):
         print(f"\nIngesting {pdf_file.name}...")
@@ -47,7 +30,7 @@ def ingest_pdfs(dir_path: Path) -> Dict[str, List[Chunk]]:
             print(f"Successfully ingested {pdf_file.name}")
         except Exception as e:
             print(f"Error ingesting {pdf_file.name}: {e}")
-    
+
     return results
 
 
@@ -70,3 +53,15 @@ def get_chunks(pdf_path: Path) -> List[Chunk]:
     print(f"Successfully ingested {len(chunks)} chunks")
 
     return chunks
+
+
+def flatten_metadata(metadata: dict) -> dict:
+    flattened = {}
+    
+    for key, value in metadata.items():
+        if isinstance(value, (str, int, float, bool, type(None))):
+            flattened[key] = value
+        else:
+            flattened[key] = json.dumps(value)
+    
+    return flattened
