@@ -1,11 +1,11 @@
 from pathlib import Path
 from typing import Optional
 
+from sentence_transformers import SentenceTransformer
+
 from app.embedder import Embedder
 from app.ingestion.ingest_pdf import ingest_pdfs
 from app.store.chroma_db import ChromaDB
-from sentence_transformers import SentenceTransformer
-
 from config import DOCS_DIR, EMBEDDER_MODEL, VECTOR_DB_COLLECTION_NAME
 
 

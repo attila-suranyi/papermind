@@ -1,6 +1,6 @@
+import json
 from pathlib import Path
 from typing import Dict, List
-import json
 
 from docling.chunking import HybridChunker
 from docling.document_converter import DocumentConverter
