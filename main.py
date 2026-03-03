@@ -37,9 +37,9 @@ def main(argv: Optional[list] = None):
         docs_dir = Path(args.docs_dir) if args.docs_dir else None
         ingestion_pipeline = IngestionPipeline()
         if docs_dir:
-            ingestion_pipeline.run(docs_dir=docs_dir)
+            ingestion_pipeline.index_pdfs(docs_dir=docs_dir)
         else:
-            ingestion_pipeline.run()
+            ingestion_pipeline.index_pdfs()
         return 0
 
     if args.mode == "answer":
