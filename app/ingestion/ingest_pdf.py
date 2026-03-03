@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 from typing import Dict, List
 
@@ -6,6 +7,8 @@ from docling.chunking import HybridChunker
 from docling.document_converter import DocumentConverter
 
 from app.model.chunk import Chunk
+
+logger = logging.getLogger(__name__)
 
 
 def ingest_pdfs(dir_path: Path) -> Dict[str, List[Chunk]]:
@@ -18,18 +21,18 @@ def ingest_pdfs(dir_path: Path) -> Dict[str, List[Chunk]]:
     pdf_files = list(dir_path.glob("*.pdf"))
 
     if not pdf_files:
-        print(f"No PDF files found in {str(dir_path)}")
+        logger.info("No PDF files found in %s", str(dir_path))
         return {}
 
     results = {}
     for pdf_file in sorted(pdf_files):
-        print(f"\nIngesting {pdf_file.name}...")
+        logger.info("Ingesting %s...", pdf_file.name)
         try:
             chunks = get_chunks(pdf_file)
             results[pdf_file.name] = chunks
-            print(f"Successfully ingested {pdf_file.name}")
-        except Exception as e:
-            print(f"Error ingesting {pdf_file.name}: {e}")
+            logger.info("Successfully ingested %s", pdf_file.name)
+        except Exception:
+            logger.exception("Error ingesting %s", pdf_file.name)
 
     return results
 
@@ -48,20 +51,25 @@ def get_chunks(pdf_path: Path) -> List[Chunk]:
 
     for i, chunk in enumerate(chunk_iter):
         enriched_text = chunker.contextualize(chunk=chunk)
-        chunks.append(Chunk(text=enriched_text, metadata=flatten_metadata(chunk.meta.export_json_dict())))
+        chunks.append(
+            Chunk(
+                text=enriched_text,
+                metadata=flatten_metadata(chunk.meta.export_json_dict()),
+            )
+        )
 
-    print(f"Successfully ingested {len(chunks)} chunks")
+    logger.info("Successfully ingested %d chunks", len(chunks))
 
     return chunks
 
 
 def flatten_metadata(metadata: dict) -> dict:
     flattened = {}
-    
+
     for key, value in metadata.items():
         if isinstance(value, (str, int, float, bool, type(None))):
             flattened[key] = value
         else:
             flattened[key] = json.dumps(value)
-    
+
     return flattened
