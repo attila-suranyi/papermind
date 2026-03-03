@@ -9,6 +9,6 @@ TODO:
 - [x] Embedding
 - [x] Vector storage
 - [x] Retrieve data using similarity search
-- [ ] Prompt construction
+- [x] Prompt construction
 - [ ] Pass data to LLM
 - [ ] API endpoint
