@@ -8,7 +8,7 @@ TODO:
 - [x] Chunking
 - [x] Embedding
 - [x] Vector storage
-- [ ] Retrieve data using similarity search
+- [x] Retrieve data using similarity search
 - [ ] Prompt construction
 - [ ] Pass data to LLM
 - [ ] API endpoint

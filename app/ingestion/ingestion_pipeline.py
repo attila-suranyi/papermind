@@ -18,7 +18,12 @@ class IngestionPipeline:
         self.embedder = Embedder(model)
         self.db = db or ChromaDB()
 
-    def run(self, docs_dir: Optional[Path] = DOCS_DIR):
+    def index_pdfs(self, docs_dir: Optional[Path] = DOCS_DIR):
+        """Ingest PDFs from `docs_dir`, generate embeddings, and index them.
+
+        This method reads PDFs (via `ingest_pdfs`), produces chunk-level
+        embeddings, and writes them into the configured vector DB collection.
+        """
         try:
             ingested_pdfs = ingest_pdfs(docs_dir)
             if not ingested_pdfs:
@@ -50,7 +55,6 @@ class IngestionPipeline:
                 chunk.embedding = embedding
 
                 try:
-                    # TODO use batching: https://cookbook.chromadb.dev/strategies/batching/
                     collection.add(
                         ids=[chunk_id],
                         embeddings=[chunk.embedding],
