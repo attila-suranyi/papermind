@@ -5,6 +5,7 @@ from chromadb import QueryResult
 from sentence_transformers import SentenceTransformer
 
 from app.embedder import Embedder
+from app.llm import chat
 from app.retrieval.prompt import get_prompt
 from app.retrieval.retrieved_chunk import RetrievedChunk
 from app.store.chroma_db import ChromaDB
@@ -43,7 +44,13 @@ class RetrievalPipeline:
 
         prompt = get_prompt(query, retrieved_chunks)
 
-        return prompt
+        try:
+            answer = chat(prompt)
+        except Exception:
+            logger.exception("Failed to retrieve answer")
+            return None
+
+        return answer
 
 
 def get_single_query_results(query_result: QueryResult) -> list[Any]:

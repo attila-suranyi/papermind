@@ -10,5 +10,6 @@ TODO:
 - [x] Vector storage
 - [x] Retrieve data using similarity search
 - [x] Prompt construction
-- [ ] Pass data to LLM
+- [x] Pass data to LLM
 - [ ] API endpoint
+- [ ] Deployment

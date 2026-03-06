@@ -6,7 +6,7 @@ from typing import Dict, List
 from docling.chunking import HybridChunker
 from docling.document_converter import DocumentConverter
 
-from app.model.chunk import Chunk
+from app.model import Chunk
 
 logger = logging.getLogger(__name__)
 
