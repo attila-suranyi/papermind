@@ -5,11 +5,11 @@ from chromadb import QueryResult
 from sentence_transformers import SentenceTransformer
 
 from app.embedder import Embedder
-from app.llm import chat
+from app.llm import GeminiClient, OllamaClient
 from app.retrieval.prompt import get_prompt
 from app.retrieval.retrieved_chunk import RetrievedChunk
 from app.store.chroma_db import ChromaDB
-from config import EMBEDDER_MODEL, VECTOR_DB_COLLECTION_NAME
+from config import EMBEDDER_MODEL, LLM_BACKEND, LLM_MODEL, VECTOR_DB_COLLECTION_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,10 @@ class RetrievalPipeline:
         model = SentenceTransformer(model_name)
         self.embedder = Embedder(model)
         self.db = db or ChromaDB()
+        if LLM_BACKEND == "gemini":
+            self.llm = GeminiClient(default_model=LLM_MODEL)
+        else:
+            self.llm = OllamaClient(default_model=LLM_MODEL)
 
     def get_answer(self, query: str):
         query_embedding = self.embedder.embed(query)
@@ -45,9 +49,9 @@ class RetrievalPipeline:
         prompt = get_prompt(query, retrieved_chunks)
 
         try:
-            answer = chat(prompt)
+            answer = self.llm.complete(prompt, model=LLM_MODEL)
         except Exception:
-            logger.exception("Failed to retrieve answer")
+            logger.exception("Failed to retrieve answer from LLM")
             return None
 
         return answer
