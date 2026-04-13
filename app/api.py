@@ -1,22 +1,37 @@
 import logging
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Optional
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
+from sentence_transformers import SentenceTransformer
 
+from app.embedder import Embedder
 from app.ingestion.ingestion_pipeline import IngestionPipeline
+from app.llm import GeminiClient, LLMClient, OllamaClient
 from app.retrieval.retrieval_pipeline import RetrievalPipeline
+from app.store.chroma_db import ChromaDB
+from config import EMBEDDER_MODEL, GEMINI_API_KEY, LLM_BACKEND, LLM_MODEL
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
-    fastapi_app.state.retrieval_pipeline = RetrievalPipeline()
-    fastapi_app.state.ingestion_pipeline = IngestionPipeline()
+    db = ChromaDB()
+    model = SentenceTransformer(EMBEDDER_MODEL)
+    embedder = Embedder(model)
+
+    llm: LLMClient
+    if LLM_BACKEND == "gemini":
+        llm = GeminiClient(default_model=LLM_MODEL, api_key=GEMINI_API_KEY)
+    else:
+        llm = OllamaClient(default_model=LLM_MODEL)
+
+    fastapi_app.state.retrieval_pipeline = RetrievalPipeline(db=db, embedder=embedder, llm=llm)
+    fastapi_app.state.ingestion_pipeline = IngestionPipeline(db=db, embedder=embedder)
     yield
+    # Cleanup if necessary
     fastapi_app.state.retrieval_pipeline = None
     fastapi_app.state.ingestion_pipeline = None
 
@@ -30,7 +45,7 @@ class IndexRequest(BaseModel):
 
 class IndexResponse(BaseModel):
     status: str
-    docs_dir: Optional[str]
+    filename: Optional[str]
 
 
 class AnswerRequest(BaseModel):
@@ -47,16 +62,31 @@ def health():
     return {"status": "ok"}
 
 
-# TODO use UploadFile for actual file upload
 @app.post("/index", response_model=IndexResponse, status_code=202)
-def index(req: IndexRequest, request: Request, background_tasks: BackgroundTasks):
-    """Trigger indexing of PDFs. Runs indexing in background and returns 202."""
-    docs_dir = Path(req.docs_dir) if req.docs_dir else None
-    # run the indexing in background to avoid blocking the request
-    background_tasks.add_task(request.app.state.ingestion_pipeline.index_pdfs, docs_dir)
-    logger.info("Indexing scheduled for %s", docs_dir or "default")
+async def index(request: Request, background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    """Upload a PDF and trigger indexing. Runs indexing in background and returns 202."""
+    if not file.filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
-    return IndexResponse(status="ok", docs_dir=str(docs_dir) if docs_dir else None)
+    from config import DOCS_DIR
+
+    DOCS_DIR.mkdir(parents=True, exist_ok=True)
+    file_path = DOCS_DIR / file.filename
+
+    # Save the file
+    try:
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+    except Exception as e:
+        logger.exception("Failed to save uploaded file")
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+
+    # run the indexing in background to avoid blocking the request
+    background_tasks.add_task(request.app.state.ingestion_pipeline.index_pdf, file_path)
+    logger.info("Indexing scheduled for %s", file.filename)
+
+    return IndexResponse(status="ok", filename=file.filename)
 
 
 @app.post("/answer", response_model=AnswerResponse)

@@ -69,12 +69,10 @@ The API will be available at `http://localhost:8000`.
 curl http://localhost:8000/
 ```
 
-### Trigger PDF Indexing
-Indexes documents from the `docs/` directory by default.
+### Upload PDF file
 ```bash
-curl -X POST http://localhost:8000/index \
-     -H "Content-Type: application/json" \
-     -d '{"docs_dir": "docs"}'
+curl -X POST http://127.0.0.1:8000/index \
+     -F "file=@path/to/your/document.pdf"
 ```
 
 ### Ask a Question
@@ -94,7 +92,7 @@ curl -X POST http://localhost:8000/answer \
 - [x] Prompt construction
 - [x] Pass data to LLM
 - [x] API endpoint with FastAPI
-- [ ] File upload using UploadFile
+- [x] File upload using UploadFile
 - [ ] Unit tests
 - [ ] Evaluation with RAGAS
 - [ ] Streaming LLM responses

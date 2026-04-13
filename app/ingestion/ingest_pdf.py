@@ -28,7 +28,7 @@ def ingest_pdfs(dir_path: Path) -> Dict[str, List[Chunk]]:
     for pdf_file in sorted(pdf_files):
         logger.info("Ingesting %s...", pdf_file.name)
         try:
-            chunks = get_chunks(pdf_file)
+            chunks = ingest_pdf(pdf_file)
             results[pdf_file.name] = chunks
             logger.info("Successfully ingested %s", pdf_file.name)
         except Exception:
@@ -37,7 +37,7 @@ def ingest_pdfs(dir_path: Path) -> Dict[str, List[Chunk]]:
     return results
 
 
-def get_chunks(pdf_path: Path) -> List[Chunk]:
+def ingest_pdf(pdf_path: Path) -> List[Chunk]:
     if not pdf_path.exists():
         raise FileNotFoundError(f"PDF file not found: {str(pdf_path)}")
 

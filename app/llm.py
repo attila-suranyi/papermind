@@ -18,9 +18,11 @@ class LLMClient(ABC):
 
 
 class GeminiClient(LLMClient):
-    def __init__(self, default_model: str | None = None):
+    def __init__(self, default_model: str | None = None, api_key: str | None = GEMINI_API_KEY):
         self.default_model = default_model or "gemini-3-flash-preview"
-        self._client = genai.Client(api_key=GEMINI_API_KEY)
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY is required for GeminiClient")
+        self._client = genai.Client(api_key=api_key)
 
     def complete(self, prompt: Prompt, model: Optional[str] = None) -> str:
         model_to_use = model or self.default_model
