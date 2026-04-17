@@ -37,23 +37,40 @@ PaperMind is a RAG (Retrieval-Augmented Generation) application designed for eff
    uv sync
    ```
 
-3. **Configure environment variables:**
+3. **Configure the application:**
 
-Create a `.env` file in the root directory:
+   Configuration is stored in YAML files under the `config/` directory. Two environments are provided out of the box:
 
-| Variable | Description | Default                                                 | Required    |
-|----------|-------------|---------------------------------------------------------|-------------|
-| `LLM_BACKEND` | LLM backend to use (`ollama` or `gemini`) | `ollama`                                                | No          |
-| `LLM_MODEL` | Model name for the selected backend | llama3 for local, and gemini-3-flash-preview for gemini | No          |
-| `GEMINI_API_KEY` | API key for Google Gemini | -                                                       | Conditional |
-| `HOST` | Host to bind the server to | `0.0.0.0`                                               | No          |
-| `PORT` | Port to run the server on | `8000`                                                  | No          |
+   | File | Purpose |
+   |------|---------|
+   | `config/prod.yaml` | Production settings (default) |
+   | `config/test.yaml` | Test settings (used by the integration test suite) |
+
+   Edit the relevant YAML file to change any setting:
+
+   | Key | Description | Default (`prod.yaml`) |
+   |-----|-------------|-----------------------|
+   | `LLM_BACKEND` | LLM backend to use (`ollama` or `gemini`) | `ollama` |
+   | `LLM_MODEL` | Model name for the selected backend | `llama3` |
+   | `GEMINI_API_KEY` | API key for Google Gemini (required when using `gemini` backend) | `""` |
+   | `EMBEDDER_MODEL` | Sentence-Transformers model for embeddings | `all-MiniLM-L6-v2` |
+   | `DOCS_DIR` | Directory where uploaded PDFs are stored | `docs` |
+   | `VECTOR_DB_DIR` | Directory for the ChromaDB persistent storage | `vector_db` |
+   | `VECTOR_DB_COLLECTION_NAME` | ChromaDB collection name | `pdf_collection` |
+
+   Relative paths in the YAML files are resolved from the project root automatically.
+
+   The active environment is selected at startup via the `--env` flag or the `APP_ENV` environment variable (defaults to `prod`).
 
 ## Running the Application
 
 Start the FastAPI server:
 ```bash
 python main.py
+```
+Or with a specific environment:
+```bash
+python main.py --env prod
 ```
 Or using `uv`:
 ```bash
@@ -93,7 +110,7 @@ curl -X POST http://localhost:8000/answer \
 - [x] Pass data to LLM
 - [x] API endpoint with FastAPI
 - [x] File upload using UploadFile
-- [ ] Unit tests
+- [x] Unit tests
 - [ ] Evaluation with RAGAS
 - [ ] Streaming LLM responses
 - [ ] Deployment to cloud
