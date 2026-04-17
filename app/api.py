@@ -11,25 +11,39 @@ from app.ingestion.ingestion_pipeline import IngestionPipeline
 from app.llm import GeminiClient, LLMClient, OllamaClient
 from app.retrieval.retrieval_pipeline import RetrievalPipeline
 from app.store.chroma_db import ChromaDB
-from config import EMBEDDER_MODEL, GEMINI_API_KEY, LLM_BACKEND, LLM_MODEL
+from config import Settings, load_settings
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
-    db = ChromaDB()
-    model = SentenceTransformer(EMBEDDER_MODEL)
+    fastapi_app.state.settings = load_settings()
+    app_settings: Settings = fastapi_app.state.settings
+    logger.info(
+        "Starting app with settings: %s", app_settings.model_dump(exclude={"GEMINI_API_KEY"})
+    )
+
+    db = ChromaDB(
+        db_path=app_settings.VECTOR_DB_DIR, collection_name=app_settings.VECTOR_DB_COLLECTION_NAME
+    )
+    model = SentenceTransformer(app_settings.EMBEDDER_MODEL)
     embedder = Embedder(model)
 
     llm: LLMClient
-    if LLM_BACKEND == "gemini":
-        llm = GeminiClient(default_model=LLM_MODEL, api_key=GEMINI_API_KEY)
+    if app_settings.LLM_BACKEND == "gemini":
+        llm = GeminiClient(
+            default_model=app_settings.LLM_MODEL, api_key=app_settings.GEMINI_API_KEY
+        )
     else:
-        llm = OllamaClient(default_model=LLM_MODEL)
+        llm = OllamaClient(default_model=app_settings.LLM_MODEL)
 
-    fastapi_app.state.retrieval_pipeline = RetrievalPipeline(db=db, embedder=embedder, llm=llm)
-    fastapi_app.state.ingestion_pipeline = IngestionPipeline(db=db, embedder=embedder)
+    fastapi_app.state.retrieval_pipeline = RetrievalPipeline(
+        db=db, embedder=embedder, llm=llm, llm_model=app_settings.LLM_MODEL
+    )
+    fastapi_app.state.ingestion_pipeline = IngestionPipeline(
+        db=db, embedder=embedder, docs_dir=app_settings.DOCS_DIR
+    )
     yield
     # Cleanup if necessary
     fastapi_app.state.retrieval_pipeline = None
@@ -68,10 +82,10 @@ async def index(request: Request, background_tasks: BackgroundTasks, file: Uploa
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
-    from config import DOCS_DIR
-
-    DOCS_DIR.mkdir(parents=True, exist_ok=True)
-    file_path = DOCS_DIR / file.filename
+    app_settings: Settings = request.app.state.settings
+    docs_dir = app_settings.DOCS_DIR
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    file_path = docs_dir / file.filename
 
     # Save the file
     try:

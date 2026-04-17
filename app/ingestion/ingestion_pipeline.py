@@ -6,24 +6,28 @@ from app.embedder import Embedder
 from app.ingestion.ingest_pdf import ingest_pdf, ingest_pdfs
 from app.model import Chunk
 from app.store.chroma_db import ChromaDB
-from config import DOCS_DIR
 
 logger = logging.getLogger(__name__)
 
 
 class IngestionPipeline:
-    def __init__(self, db: ChromaDB, embedder: Embedder):
+    def __init__(self, db: ChromaDB, embedder: Embedder, docs_dir: Optional[Path] = None):
         self.embedder = embedder
         self.db = db
+        self.docs_dir = docs_dir
 
-    def index_pdfs(self, docs_dir: Optional[Path] = DOCS_DIR):
+    def index_pdfs(self, docs_dir: Optional[Path] = None):
         """Ingest PDFs from `docs_dir`, generate embeddings, and index them.
 
         This method reads PDFs (via `ingest_pdfs`), produces chunk-level
         embeddings, and writes them into the configured vector DB collection.
         """
+        target_dir = docs_dir or self.docs_dir
+        if target_dir is None:
+            raise ValueError("docs_dir must be provided either in constructor or as argument")
+
         try:
-            ingested_pdfs = ingest_pdfs(docs_dir)
+            ingested_pdfs = ingest_pdfs(target_dir)
             if not ingested_pdfs:
                 logger.info("No chunks returned")
                 return

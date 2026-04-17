@@ -1,7 +1,13 @@
+import logging
 import os
 from pathlib import Path
+from typing import Optional
 
-from dotenv import load_dotenv
+import yaml
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 def _find_root() -> Path:
@@ -12,15 +18,42 @@ def _find_root() -> Path:
     raise FileNotFoundError("Project root not found")
 
 
-load_dotenv()
-
 PROJECT_ROOT = _find_root()
-DOCS_DIR = PROJECT_ROOT / "docs"
-VECTOR_DB_DIR = PROJECT_ROOT / "vector_db"
-EMBEDDER_MODEL = "all-MiniLM-L6-v2"
-VECTOR_DB_COLLECTION_NAME = "pdf_collection"
 
-# Environment-dependent
-LLM_BACKEND = os.getenv("LLM_BACKEND", "ollama")  # 'ollama' (local) or 'gemini' (hosted)
-LLM_MODEL = os.getenv("LLM_MODEL")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+class Settings(BaseSettings):
+    PROJECT_ROOT: Path = PROJECT_ROOT
+    DOCS_DIR: Path = PROJECT_ROOT / "docs"
+    VECTOR_DB_DIR: Path = PROJECT_ROOT / "vector_db"
+    EMBEDDER_MODEL: str = "all-MiniLM-L6-v2"
+    VECTOR_DB_COLLECTION_NAME: str = "pdf_collection"
+    LLM_BACKEND: str = "ollama"
+    LLM_MODEL: Optional[str] = "llama3"
+    GEMINI_API_KEY: Optional[str] = None
+
+    @field_validator("DOCS_DIR", "VECTOR_DB_DIR", mode="before")
+    @classmethod
+    def make_absolute(cls, v: str | Path) -> Path:
+        path = Path(v)
+        if not path.is_absolute():
+            return PROJECT_ROOT / path
+        return path
+
+
+def load_settings(env: Optional[str] = None) -> Settings:
+    if env is None:
+        env = os.getenv("APP_ENV", "prod")
+
+    config_file = PROJECT_ROOT / "config" / f"{env}.yaml"
+
+    if not config_file.exists():
+        logger.warning("Config file %s not found. Using default settings.", config_file)
+        return Settings()
+
+    try:
+        with open(config_file, "r") as f:
+            config_data = yaml.safe_load(f) or {}
+            return Settings(**config_data)
+    except Exception as e:
+        logger.error("Failed to load config from %s: %s. Using default settings.", config_file, e)
+        return Settings()

@@ -7,7 +7,6 @@ from google import genai as genai
 from google.genai import types
 
 from app.model import Prompt
-from config import GEMINI_API_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ class LLMClient(ABC):
 
 
 class GeminiClient(LLMClient):
-    def __init__(self, default_model: str | None = None, api_key: str | None = GEMINI_API_KEY):
+    def __init__(self, default_model: str | None = None, api_key: str | None = None):
         self.default_model = default_model or "gemini-3-flash-preview"
         if not api_key:
             raise ValueError("GEMINI_API_KEY is required for GeminiClient")

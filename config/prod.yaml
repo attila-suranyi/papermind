@@ -1,0 +1,7 @@
+EMBEDDER_MODEL: "all-MiniLM-L6-v2"
+VECTOR_DB_COLLECTION_NAME: "pdf_collection"
+LLM_BACKEND: "ollama"
+LLM_MODEL: "llama3"
+GEMINI_API_KEY: ""
+DOCS_DIR: "docs"
+VECTOR_DB_DIR: "vector_db"

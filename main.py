@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 
@@ -12,6 +13,17 @@ def main() -> int:
     Host and port can be overridden via the environment variables ``HOST``
     and ``PORT``. Defaults: 0.0.0.0:8000.
     """
+    parser = argparse.ArgumentParser(description="Start PaperMind API")
+    parser.add_argument(
+        "--env",
+        type=str,
+        default=os.getenv("APP_ENV", "prod"),
+        help="Environment to use (prod, test)",
+    )
+    args = parser.parse_args()
+
+    os.environ["APP_ENV"] = args.env
+
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
 

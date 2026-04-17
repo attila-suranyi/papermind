@@ -1,19 +1,15 @@
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List
 
 import chromadb
 from chromadb import QueryResult
 
 from app.model import Chunk
 from app.retrieval.retrieved_chunk import RetrievedChunk
-from config import VECTOR_DB_COLLECTION_NAME, VECTOR_DB_DIR
 
 
 class ChromaDB:
-    def __init__(self, db_path: Optional[Path] = None):
-        if db_path is None:
-            db_path = VECTOR_DB_DIR
-
+    def __init__(self, db_path: Path, collection_name: str = "pdf_collection"):
         if not db_path.exists():
             db_path.mkdir(parents=True, exist_ok=True)
 
@@ -21,7 +17,7 @@ class ChromaDB:
             raise NotADirectoryError(f"Path is not a directory: {str(db_path)}")
 
         self.client = chromadb.PersistentClient(path=str(db_path))
-        self.collection = self.client.get_or_create_collection(name=VECTOR_DB_COLLECTION_NAME)
+        self.collection = self.client.get_or_create_collection(name=collection_name)
 
     def add_chunk(self, chunk_id: str, chunk: Chunk):
         """Add a single chunk to the collection."""
